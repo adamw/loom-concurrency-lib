@@ -8,4 +8,6 @@ object S170_The_bad {
   def _3 = "Testing (timers)"
 
   def _4 = "Resources might be used unsafely"
+
+  def _5 = "Unclear fairness & thread affinity"
 }
