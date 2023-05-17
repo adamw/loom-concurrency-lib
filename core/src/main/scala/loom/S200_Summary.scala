@@ -1,6 +1,6 @@
 package loom
 
-object S200_Summary {
+object S200_Summary:
   def _1: String = "Safe concurrency with built-in operations"
 
   def _2: String = "Structured concurrency with low syntax overhead"
@@ -18,4 +18,4 @@ object S200_Summary {
    */
 
   val ThankYou = true
-}
+
