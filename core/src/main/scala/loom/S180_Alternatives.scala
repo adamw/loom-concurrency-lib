@@ -3,7 +3,7 @@ package loom
 object S180_Alternatives:
   def future = "https://docs.scala-lang.org/overviews/core/futures.html"
 
-  def zio = "https://zio.dev"
+  def functional_effect_systems = "https://zio.dev || https://typelevel.org/cats-effect/"
 
   def unison = "https://www.unison-lang.org"
 
