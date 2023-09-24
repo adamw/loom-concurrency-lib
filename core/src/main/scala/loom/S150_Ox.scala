@@ -5,7 +5,7 @@ import ox.*
 import ox.channels.*
 
 import java.io.Closeable
-import java.util.concurrent.{Semaphore, StructuredTaskScope}
+import java.util.concurrent.StructuredTaskScope
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
 import scala.util.control.NonFatal
@@ -51,7 +51,6 @@ A function satisfies the structural concurrency property:
     val order = fork(fetchOrder())
     (user.join(), order.join())
   }
-  log.info(result.toString())
 
 @main def main3(): Unit =
   def task1(): String = { Thread.sleep(1000); log.info("Task 1 done"); "task1" }
@@ -102,15 +101,13 @@ A function satisfies the structural concurrency property:
       c.done()
     }
 
-    val t = fork {
+    fork {
       while c.receive() match
           case ChannelClosed.Error(r) => log.error("Error", r); false
           case ChannelClosed.Done     => false
           case v                      => log.info(s"Got: $v"); true
       do ()
     }
-
-    t.join()
   }
 
 @main def main8(): Unit =

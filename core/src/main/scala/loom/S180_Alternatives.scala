@@ -5,7 +5,7 @@ object S180_Alternatives:
 
   def functional_effect_systems = "https://zio.dev || https://typelevel.org/cats-effect/"
 
-  def unison = "https://www.unison-lang.org"
+  def akka_streams = "https://doc.akka.io/docs/akka/current/stream/index.html"
 
   // more:
   // [Implementing Raft using Project Loom](https://softwaremill.com/implementing-raft-using-project-loom/#zio-vs-loom-the-verdict)
