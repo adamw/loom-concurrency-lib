@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
   val start = System.currentTimeMillis()
 
   val threads =
-    for (i <- 1 to 1000000)
+    for (i <- 1 to 1_000_000)
       yield Thread.startVirtualThread(() => 1)
 
   threads.foreach(_.join())
