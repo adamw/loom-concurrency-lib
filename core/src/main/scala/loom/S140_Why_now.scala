@@ -1,9 +1,7 @@
 package loom
 
 object S140_Why_now:
-  def Why_Futures_? =
-    "Multiplexing many concurrently running logical threads " +
-      "onto a small number of physical threads"
+  def Why_Futures_? = "Efficiently use kernel threads"
 
   def But = List(
     "syntax",
@@ -11,4 +9,4 @@ object S140_Why_now:
     "stack traces"
   )
 
-  def What_is_left = ???
+  def Post_Loom = ???

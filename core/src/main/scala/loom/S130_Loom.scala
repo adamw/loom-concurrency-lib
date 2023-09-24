@@ -2,14 +2,14 @@ package loom
 
 import org.slf4j.LoggerFactory
 
-val log = LoggerFactory.getLogger("loom")
-
 @main def loom(): Unit =
+  val log = LoggerFactory.getLogger("loom")
+
   val start = System.currentTimeMillis()
 
   val threads =
-    for (i <- 1 to 100000)
-      yield Thread.startVirtualThread(() => log.info(s"Hello, world! ($i)"))
+    for (i <- 1 to 1000000)
+      yield Thread.startVirtualThread(() => 1)
 
   threads.foreach(_.join())
 

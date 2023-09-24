@@ -2,7 +2,7 @@ import com.softwaremill.SbtSoftwareMillCommon.commonSmlBuildSettings
 
 lazy val commonSettings = commonSmlBuildSettings ++ Seq(
   organization := "com.softwaremill.loom",
-  scalaVersion := "3.2.2"
+  scalaVersion := "3.3.1"
 )
 
 lazy val rootProject = (project in file("."))
@@ -15,7 +15,7 @@ lazy val core: Project = (project in file("core"))
   .settings(
     name := "core",
     libraryDependencies ++= Seq(
-      "com.softwaremill.ox" %% "core" % "0.0.6",
-      "ch.qos.logback" % "logback-classic" % "1.4.6"
+      "com.softwaremill.ox" %% "core" % "0.0.14",
+      "ch.qos.logback" % "logback-classic" % "1.4.11"
     )
   )

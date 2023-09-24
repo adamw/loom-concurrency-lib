@@ -1,12 +1,11 @@
 package loom
 
-import jdk.incubator.concurrent.StructuredTaskScope
 import org.slf4j.LoggerFactory
 import ox.*
 import ox.channels.*
 
 import java.io.Closeable
-import java.util.concurrent.Semaphore
+import java.util.concurrent.{Semaphore, StructuredTaskScope}
 import scala.annotation.tailrec
 import scala.concurrent.duration.DurationInt
 import scala.util.control.NonFatal
@@ -30,7 +29,7 @@ def fetchOrder(): String =
       val order = scope.fork(() => fetchOrder())
       scope.join()
       scope.throwIfFailed()
-      (user.resultNow, order.resultNow)
+      (user.get(), order.get())
     }
   log.info(result.toString)
 
@@ -47,9 +46,8 @@ A function satisfies the structural concurrency property:
 
 @main def main2(): Unit =
   log.info("Starting ...")
-  def forkUser(using Ox) = fork(findUser())
-  val result = scoped {
-    val user = forkUser
+  val result = supervised {
+    val user = fork(findUser())
     val order = fork(fetchOrder())
     (user.join(), order.join())
   }
@@ -59,7 +57,7 @@ A function satisfies the structural concurrency property:
   def task1(): String = { Thread.sleep(1000); log.info("Task 1 done"); "task1" }
   def task2(): String = { Thread.sleep(500); log.info("Task 2 done"); "task2" }
   println(raceResult(task1())(task2()))
-  Thread.sleep(1000)
+  Thread.sleep(2000)
 
 @main def main4(): Unit =
   def task(): String = { Thread.sleep(2000); log.info("Task 1 done"); "task1" }
@@ -67,8 +65,8 @@ A function satisfies the structural concurrency property:
   Thread.sleep(1000)
 
 @main def main5(): Unit =
-  scoped {
-    fork {
+  supervised {
+    forkDaemon {
       forever {
         try
           log.info("Processing ...")
@@ -88,29 +86,28 @@ A function satisfies the structural concurrency property:
     override def close() =
       log.info(s"Closing $x")
 
-  scoped {
+  supervised {
     val res1 = useCloseableInScope(MyResource(1))
     val res2 = useCloseableInScope(MyResource(2))
-    println(s"Got $res1 $res2")
+    println(s"Got: $res1 $res2")
   }
 
 @main def main7(): Unit =
   val c = Channel[String]()
-  scoped {
+  supervised {
     fork {
-      c.send("hello")
+      c.send("Hello")
       c.send("world")
-      c.send("from Devoxx")
+      c.send("from DevTalks")
       c.done()
     }
 
     val t = fork {
-      repeatWhile {
-        c.receive() match
-          case ChannelResult.Error(r) => log.error("Error", r.orNull); false
-          case ChannelResult.Done     => false
-          case ChannelResult.Value(v) => log.info(s"Got: $v"); true
-      }
+      while c.receive() match
+          case ChannelClosed.Error(r) => log.error("Error", r); false
+          case ChannelClosed.Done     => false
+          case v                      => log.info(s"Got: $v"); true
+      do ()
     }
 
     t.join()
@@ -125,14 +122,14 @@ A function satisfies the structural concurrency property:
 
   case object Tick
   def consumer(strings: Source[String]): Nothing =
-    scoped {
+    supervised {
       val tick = Source.tick(1.second, Tick)
 
       @tailrec
       def doConsume(acc: Int): Nothing =
         select(strings, tick).orThrow match
           case Tick =>
-            log.info(s"Total number of characters received this second: $acc")
+            log.info(s"Total number of chars received last second: $acc")
             doConsume(0)
           case s: String => doConsume(acc + s.length)
 
@@ -140,20 +137,50 @@ A function satisfies the structural concurrency property:
     }
 
   val c = Channel[String]()
-  scoped {
-    fork(producer(c))
-    fork(consumer(c))
-    log.info("Press any key to exit ...")
-    // readline
+  supervised {
+    forkDaemon(producer(c))
+    forkDaemon(consumer(c))
+    log.info("Press any key ...")
     System.in.read()
   }
 
 @main def main9(): Unit =
-  scoped {
-    val numbers = Source.iterate[Int](0)(_ + 1)
+  val c = Channel[Int]()
+  val d = Channel[Int]()
 
-    numbers
-      .transform(_.filter(_ % 2 == 0).map(_ + 1).take(10))
-      .foreach(n => log.info(n.toString))
+  supervised {
+    forkDaemon {
+      while true do
+        Thread.sleep(500L)
+        if Random.nextBoolean() then c.receive()
+        else d.send(Random.nextInt(100))
+    }
+
+    while true do
+      select(c.sendClause(10), d.receiveClause).orThrow match
+        case c.Sent()      => println("Sent")
+        case d.Received(v) => println(s"Received: $v")
+  }
+
+@main def main10(): Unit =
+  supervised {
+    val numbersPositive = Source.iterate[Int](0)(n => n + 1).map { n =>
+      Thread.sleep(101)
+      n
+    }
+    val numbersNegative = Source.iterate[Int](0)(n => n - 1).map { n =>
+      Thread.sleep(99)
+      n
+    }
+
+    numbersPositive
+      .merge(numbersNegative)
+      .mapAsView(v => v * 2)
+      .mapPar(5) { n =>
+        log.info(s"Sending request $n")
+        Thread.sleep(1000)
+      }
+      .foreach(n => ())
+
     log.info("Done")
   }
