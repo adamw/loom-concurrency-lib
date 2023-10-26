@@ -10,3 +10,7 @@ object S170_The_bad:
   def _4 = "Resources might be used unsafely"
 
   def _5 = "Unclear fairness & thread affinity"
+
+  def _6 = "Channels: not as fast as some other approaches"
+
+  def _7 = "Refactoring: no referential transparency"
