@@ -51,6 +51,7 @@ A function satisfies the structural concurrency property:
     val order = fork(fetchOrder())
     (user.join(), order.join())
   }
+  log.info(result.toString)
 
 @main def main3(): Unit =
   def task1(): String = { Thread.sleep(1000); log.info("Task 1 done"); "task1" }
@@ -103,9 +104,9 @@ A function satisfies the structural concurrency property:
 
     fork {
       while c.receive() match
-          case ChannelClosed.Error(r) => log.error("Error", r); false
+          case ChannelClosed.Error(r) => log.error("Error"); false
           case ChannelClosed.Done     => false
-          case v                      => log.info(s"Got: $v"); true
+          case v                      => log.info("Got: " + v); true
       do ()
     }
   }
@@ -121,6 +122,8 @@ A function satisfies the structural concurrency property:
   def consumer(strings: Source[String]): Nothing =
     supervised {
       val tick = Source.tick(1.second, Tick)
+
+      // sum up the number of characters received each second
 
       @tailrec
       def doConsume(acc: Int): Nothing =
@@ -170,8 +173,7 @@ A function satisfies the structural concurrency property:
       n
     }
 
-    numbersPositive
-      .merge(numbersNegative)
+    numbersPositive.merge(numbersNegative)
       .mapAsView(v => v * 2)
       .mapPar(5) { n =>
         log.info(s"Sending request $n")

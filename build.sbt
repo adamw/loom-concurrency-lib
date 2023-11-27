@@ -15,7 +15,7 @@ lazy val core: Project = (project in file("core"))
   .settings(
     name := "core",
     libraryDependencies ++= Seq(
-      "com.softwaremill.ox" %% "core" % "0.0.14",
+      "com.softwaremill.ox" %% "core" % "0.0.15",
       "ch.qos.logback" % "logback-classic" % "1.4.11"
     )
   )
