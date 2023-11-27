@@ -98,7 +98,7 @@ A function satisfies the structural concurrency property:
     fork {
       c.send("Hello")
       c.send("world")
-      c.send("from NE Scala")
+      c.send("from Scala Matters")
       c.done()
     }
 
